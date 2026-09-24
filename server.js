@@ -15,7 +15,8 @@ const corsOptions = {
         'https://fountainregister.vercel.app', 
         'http://localhost:3000' // Allows local Next.js testing too
     ],
-    methods: ['GET', 'POST'],
+    // ADDED 'DELETE' here so the admin can delete students
+    methods: ['GET', 'POST', 'DELETE'],
     allowedHeaders: ['Content-Type']
 };
 app.use(cors(corsOptions));
@@ -82,6 +83,17 @@ app.get('/api/students/download', async (req, res) => {
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename=students.csv');
         res.status(200).send(header + rows);
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error });
+    }
+});
+
+// Delete a student (for Admin page) - ADDED THIS ROUTE
+app.delete('/api/students/:id', async (req, res) => {
+    try {
+        const studentId = req.params.id;
+        await Student.findByIdAndDelete(studentId);
+        res.status(200).json({ message: "Student deleted successfully!" });
     } catch (error) {
         res.status(500).json({ message: "Server Error", error });
     }
