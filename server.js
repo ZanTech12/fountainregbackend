@@ -8,7 +8,17 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+
+// Configure CORS to explicitly allow your Vercel frontend and local frontend
+const corsOptions = {
+    origin: [
+        'https://fountainregister.vercel.app', 
+        'http://localhost:3000' // Allows local Next.js testing too
+    ],
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type']
+};
+app.use(cors(corsOptions));
 
 // Connect to MongoDB (Simplified to prevent ECONNREFUSED and deprecation errors)
 mongoose.connect(process.env.MONGO_URI)
