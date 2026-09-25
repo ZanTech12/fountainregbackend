@@ -21,6 +21,10 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// ✅ GLOBAL DEADLINE: Sept 25th, 2026 at 11:00 AM (WAT / UTC+1)
+// 10:00:00Z in UTC is equal to 11:00 AM in Nigeria Time.
+const REGISTRATION_DEADLINE = new Date('2026-09-25T10:00:00Z').getTime();
+
 // Connect to MongoDB (Simplified to prevent ECONNREFUSED and deprecation errors)
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected Successfully"))
@@ -41,6 +45,11 @@ const Student = mongoose.model('Student', studentSchema);
 // Register a new student
 app.post('/api/students', async (req, res) => {
     try {
+        // ✅ Check the global lock first
+        if (Date.now() > REGISTRATION_DEADLINE) {
+            return res.status(403).json({ message: "Registration is closed. The deadline has passed." });
+        }
+
         const { FirstName, LastName, Gender, ClassName } = req.body;
         
         // Create new student, Section is hardcoded to 'A'
