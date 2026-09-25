@@ -15,15 +15,10 @@ const corsOptions = {
         'https://fountainregister.vercel.app', 
         'http://localhost:3000' // Allows local Next.js testing too
     ],
-    // ADDED 'DELETE' here so the admin can delete students
-    methods: ['GET', 'POST', 'DELETE'],
+    methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type']
 };
 app.use(cors(corsOptions));
-
-// ✅ GLOBAL DEADLINE: Sept 25th, 2026 at 11:00 AM (WAT / UTC+1)
-// 10:00:00Z in UTC is equal to 11:00 AM in Nigeria Time.
-const REGISTRATION_DEADLINE = new Date('2026-09-25T10:00:00Z').getTime();
 
 // Connect to MongoDB (Simplified to prevent ECONNREFUSED and deprecation errors)
 mongoose.connect(process.env.MONGO_URI)
@@ -45,11 +40,6 @@ const Student = mongoose.model('Student', studentSchema);
 // Register a new student
 app.post('/api/students', async (req, res) => {
     try {
-        // ✅ Check the global lock first
-        if (Date.now() > REGISTRATION_DEADLINE) {
-            return res.status(403).json({ message: "Registration is closed. The deadline has passed." });
-        }
-
         const { FirstName, LastName, Gender, ClassName } = req.body;
         
         // Create new student, Section is hardcoded to 'A'
@@ -92,17 +82,6 @@ app.get('/api/students/download', async (req, res) => {
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename=students.csv');
         res.status(200).send(header + rows);
-    } catch (error) {
-        res.status(500).json({ message: "Server Error", error });
-    }
-});
-
-// Delete a student (for Admin page) - ADDED THIS ROUTE
-app.delete('/api/students/:id', async (req, res) => {
-    try {
-        const studentId = req.params.id;
-        await Student.findByIdAndDelete(studentId);
-        res.status(200).json({ message: "Student deleted successfully!" });
     } catch (error) {
         res.status(500).json({ message: "Server Error", error });
     }
